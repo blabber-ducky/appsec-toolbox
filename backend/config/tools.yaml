@@ -1,0 +1,74 @@
+tools:
+  sast:
+    - id: semgrep
+      name: Semgrep
+      image: semgrep/semgrep:latest
+      tooltip: >
+        Semgrep finds bugs and security issues using pattern-matching rules.
+        It supports 30+ languages and auto-detects your stack. Great for custom
+        org-wide policies or running the community ruleset out of the box.
+      hint: >
+        Works best on Python, JavaScript/TypeScript, Go, Java, Ruby, PHP, C/C++,
+        and more. Upload a ZIP of your source tree or paste a Git URL — Semgrep
+        will auto-select the right rules for your languages.
+      supports_spdx: false
+      input_type: source
+
+  sca:
+    - id: trivy-sca
+      name: Trivy (SCA)
+      image: aquasec/trivy:latest
+      tooltip: >
+        Trivy scans your dependency manifests and lock files for known CVEs using
+        the OSV, NVD, and GitHub Advisory databases. It covers npm, pip, Maven,
+        Go modules, Cargo, Composer, and more.
+      hint: >
+        Make sure your lock files are included in the ZIP — package-lock.json,
+        requirements.txt, go.sum, pom.xml, Cargo.lock etc. Trivy reads them all
+        automatically. SPDX SBOM export is available after scanning.
+      supports_spdx: true
+      input_type: source
+
+    - id: owasp-dc
+      name: OWASP Dependency Check
+      image: owasp/dependency-check:latest
+      tooltip: >
+        OWASP Dependency Check identifies project dependencies with published CVEs
+        using the NVD database. It excels at Java/Maven/Gradle and .NET projects,
+        and also covers Python, Ruby, and Node.
+      hint: >
+        First run downloads the NVD data (~200MB) which takes 2-5 minutes — grab
+        a coffee. Subsequent scans reuse the cached data and are much faster.
+        Best results with Java or .NET projects that have clear dependency manifests.
+      supports_spdx: false
+      input_type: source
+
+  iac:
+    - id: kics
+      name: Checkmarx KICS
+      image: checkmarx/kics:latest
+      tooltip: >
+        KICS (Keeping Infrastructure as Code Secure) scans Terraform, Helm charts,
+        Dockerfiles, Kubernetes YAML, CloudFormation, Ansible, and more for
+        misconfigurations and policy violations.
+      hint: >
+        Drop in your entire repo ZIP — KICS auto-detects IaC file types across
+        subdirectories. Covers 2,000+ queries across Terraform (AWS, GCP, Azure),
+        Kubernetes, Docker, and Helm.
+      supports_spdx: false
+      input_type: source
+
+  build:
+    - id: trivy-image
+      name: Trivy (Image Scan)
+      image: aquasec/trivy:latest
+      tooltip: >
+        Trivy scans Docker images for OS package CVEs (Alpine, Debian, Ubuntu,
+        RHEL, CentOS) and application dependency vulnerabilities without running
+        the image. Checks the image filesystem layer by layer.
+      hint: >
+        Provide a registry reference (e.g. nginx:latest, python:3.12-slim) to pull
+        and scan, or upload a .tar.gz exported with "docker save myimage | gzip >
+        image.tar.gz". SPDX SBOM export is available after scanning.
+      supports_spdx: true
+      input_type: image
