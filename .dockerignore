@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+frontend/node_modules/
+frontend/.vite/
+
+# Git
+.git/
+.gitignore
+
+# Docs
+*.md
+Agent_Progress.md
+CLAUDE.md
+
+# Editors
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Temp scan workspaces
+/tmp/appsec-*/

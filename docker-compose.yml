@@ -1,0 +1,12 @@
+services:
+  appsec-toolbox:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # Required: gives the app access to the host Docker daemon
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Required: tool containers are launched by the host daemon, so workspace
+      # paths must exist on the host. Sharing /tmp makes them valid on both sides.
+      - /tmp:/tmp
+    restart: unless-stopped
