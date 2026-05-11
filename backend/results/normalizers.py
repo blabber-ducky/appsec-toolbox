@@ -105,6 +105,35 @@ def normalize_owasp_dc(data: dict, tool_id: str = "owasp-dc") -> list[Finding]:
     return findings
 
 
+def normalize_gitleaks(data: list, tool_id: str = "gitleaks") -> list[Finding]:
+    findings: list[Finding] = []
+    for item in data:
+        rule_id = item.get("RuleID", "")
+        rule_lower = rule_id.lower()
+        if any(p in rule_lower for p in ("private-key", "private_key", "secret-key", "secret_key")):
+            sev: SeverityLevel = "CRITICAL"
+        else:
+            sev = "HIGH"
+        desc = item.get("Description", rule_id or "Secret detected")
+        match_fragment = item.get("Match", "")
+        full_desc = desc
+        if match_fragment:
+            full_desc = f"{desc} — matched: {match_fragment[:80]}"
+        findings.append(Finding(
+            id=_fid(),
+            tool=tool_id,
+            scan_type="Secrets",
+            severity=sev,
+            title=desc[:120],
+            description=full_desc,
+            location=f"{item.get('File', '?')}:{item.get('StartLine', '?')}",
+            rule_id=rule_id,
+            references=[],
+            raw=item,
+        ))
+    return findings
+
+
 def normalize_kics(data: dict, tool_id: str = "kics") -> list[Finding]:
     findings: list[Finding] = []
     for query in data.get("queries", []):

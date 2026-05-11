@@ -9,6 +9,7 @@ from scanners.sca.trivy import TrivySCAScanner
 from scanners.sca.owasp_dc import OWASPDCScanner
 from scanners.iac.kics import KICSScanner
 from scanners.build.trivy_image import TrivyImageScanner
+from scanners.secrets.gitleaks import GitleaksScanner
 
 _REGISTRY: dict[str, type[BaseScanner]] = {
     "semgrep": SemgrepScanner,
@@ -16,6 +17,7 @@ _REGISTRY: dict[str, type[BaseScanner]] = {
     "owasp-dc": OWASPDCScanner,
     "kics": KICSScanner,
     "trivy-image": TrivyImageScanner,
+    "gitleaks": GitleaksScanner,
 }
 
 _TOOLS_YAML = Path(__file__).parent / "config" / "tools.yaml"

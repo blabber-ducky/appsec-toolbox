@@ -1,5 +1,6 @@
 import type {
   ResultsResponse,
+  ScanLogsResponse,
   StartScanResponse,
   ToolsRegistry,
 } from "@/types";
@@ -25,6 +26,9 @@ export const api = {
 
   getResults: (scanId: string) =>
     request<ResultsResponse>(`/results/${scanId}`),
+
+  getScanLogs: (scanId: string) =>
+    request<ScanLogsResponse>(`/results/${scanId}/logs`),
 
   csvExportUrl: (scanId: string, columnKeys: string[]) => {
     const params = columnKeys.length ? `?columns=${columnKeys.join(",")}` : "";

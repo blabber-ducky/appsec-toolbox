@@ -27,6 +27,14 @@ async def get_results(scan_id: str) -> dict:
     }
 
 
+@router.get("/{scan_id}/logs")
+async def get_scan_logs(scan_id: str) -> dict:
+    state = store.get_scan(scan_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return {"scan_id": scan_id, "logs": state.logs}
+
+
 @router.get("/{scan_id}/export/csv")
 async def export_csv(scan_id: str, columns: str = "") -> StreamingResponse:
     state = store.get_scan(scan_id)

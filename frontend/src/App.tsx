@@ -12,6 +12,7 @@ import ScanProgress from "@/components/ScanProgress";
 import ResultsTable from "@/components/ResultsTable";
 import ColumnSelector from "@/components/ColumnSelector";
 import ExportBar from "@/components/ExportBar";
+import ScanLogsDialog from "@/components/ScanLogsDialog";
 import { useResults } from "@/hooks/useResults";
 import { api } from "@/lib/api";
 import type { ScanType, ScanStatus, ToolConfig, ToolsRegistry } from "@/types";
@@ -35,6 +36,7 @@ function getToolsForType(registry: ToolsRegistry | null, scanType: ScanType): To
     SCA: "sca",
     IaC: "iac",
     Build: "build",
+    Secrets: "secrets",
   };
   return registry.tools[map[scanType]] ?? [];
 }
@@ -191,6 +193,10 @@ export default function App() {
                       onChange={setSelectedColumns}
                     />
                   )}
+                  <ScanLogsDialog
+                    scanId={scanId!}
+                    toolName={selectedTool?.name ?? toolId ?? ""}
+                  />
                 </div>
 
                 <ResultsTable

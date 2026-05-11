@@ -58,6 +58,23 @@ tools:
       supports_spdx: false
       input_type: source
 
+  secrets:
+    - id: gitleaks
+      name: Gitleaks
+      image: zricethezav/gitleaks:latest
+      tooltip: >
+        Gitleaks detects hardcoded secrets — API keys, passwords, tokens, and
+        credentials — in your source code using a comprehensive library of regex
+        rules combined with entropy analysis. Covers AWS, GCP, GitHub, Slack,
+        Stripe, and hundreds of other secret types.
+      hint: >
+        Upload a ZIP of your source tree or paste a Git URL. Gitleaks scans all
+        file types recursively. Results show the file, line number, and the rule
+        that matched. Secrets are not echoed back in full — only the matched
+        fragment is shown so the report itself is safe to share.
+      supports_spdx: false
+      input_type: source
+
   build:
     - id: trivy-image
       name: Trivy (Image Scan)
