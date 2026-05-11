@@ -14,7 +14,7 @@ class SemgrepScanner(BaseScanner):
             str(workspace.src): {"bind": "/src", "mode": "ro"},
             str(workspace.out): {"bind": "/out", "mode": "rw"},
         }
-        command = "scan --json --output /out/results.json --config auto /src"
+        command = "semgrep scan --json --output /out/results.json --config auto /src"
         return volumes, command
 
     def parse_output(self, out_dir: str) -> list[Finding]:
