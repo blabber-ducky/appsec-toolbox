@@ -1,5 +1,7 @@
 from __future__ import annotations
 import asyncio
+import logging
+import time
 import uuid
 from typing import Optional
 
@@ -13,6 +15,7 @@ from core import docker_runner, git_fetcher
 from results import store
 from scanner_factory import get_scanner
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/scan", tags=["scans"])
 
 
@@ -31,12 +34,18 @@ async def start_scan(
     if not session_id:
         session_id = str(uuid.uuid4())
 
+    logger.info(
+        "Scan requested — scan_id=%s tool=%s type=%s input=%s session=%s",
+        scan_id, tool_id, scan_type, input_type, session_id,
+    )
+
     store.purge_session(session_id)
     store.create_scan(scan_id, session_id, tool_id, scan_type)
 
     file_data: bytes | None = None
     if file:
         file_data = await file.read()
+        logger.info("Upload received — filename=%s size=%d bytes", file.filename, len(file_data))
 
     background_tasks.add_task(
         _run_scan,
@@ -65,8 +74,8 @@ async def _run_scan(
     loop = asyncio.get_running_loop()
     state = store.get_scan(scan_id)
     state.status = "running"
-
     active_stage: str | None = None
+    started_at = time.monotonic()
 
     def _push(msg: dict) -> None:
         loop.call_soon_threadsafe(store.log_message, scan_id, msg)
@@ -77,7 +86,18 @@ async def _run_scan(
     def stage(label: str, status: str = "running") -> None:
         nonlocal active_stage
         active_stage = label if status == "running" else None
+        elapsed = f"{time.monotonic() - started_at:.1f}s"
+        if status == "running":
+            logger.info("[%s] Stage started: %s", scan_id[:8], label)
+        elif status == "done":
+            logger.info("[%s] Stage done (%s): %s", scan_id[:8], elapsed, label)
+        else:
+            logger.warning("[%s] Stage %s: %s", scan_id[:8], status, label)
         _push({"type": "stage", "label": label, "status": status})
+
+    def log_warning(msg: str) -> None:
+        logger.warning("[%s] %s", scan_id[:8], msg)
+        log(f"WARNING: {msg}")
 
     workspace = ws_mod.Workspace(scan_id)
     workspace.create()
@@ -110,16 +130,22 @@ async def _run_scan(
             stage(f"Pulling {image_ref} from registry", "done")
 
         else:
-            raise ValueError(f"Invalid input combination: type={input_type}")
+            raise ValueError(
+                f"Invalid input combination: input_type='{input_type}', "
+                f"file={'yes' if file_data else 'no'}, "
+                f"git_url={git_url!r}, image_ref={image_ref!r}"
+            )
 
         # ── Pull tool image ─────────────────────────────────────────────────
         scanner = get_scanner(tool_id)
+        logger.info("[%s] Scanner: %s (image=%s)", scan_id[:8], tool_id, scanner.image)
         stage(f"Pulling {scanner.image}")
         await asyncio.to_thread(docker_runner.pull_image, scanner.image, log)
         stage(f"Pulling {scanner.image}", "done")
 
         # ── Run scan container ──────────────────────────────────────────────
         volumes, command = scanner.prepare(workspace, input_type=input_type, image_ref=image_ref)
+        logger.info("[%s] Running scanner container — command=%r", scan_id[:8], command)
         stage(f"Running {tool_id} scan")
         exit_code = await asyncio.to_thread(
             docker_runner.run_container,
@@ -129,15 +155,25 @@ async def _run_scan(
             log,
         )
         if exit_code not in (0, 1):
-            log(f"WARNING: Scanner exited with code {exit_code} — results may be incomplete.")
+            log_warning(
+                f"Scanner exited with code {exit_code} — results may be incomplete or the tool "
+                "encountered an internal error. Check the scanner output above for details."
+            )
         stage(f"Running {tool_id} scan", "done")
 
         # ── Parse results ───────────────────────────────────────────────────
         stage("Parsing results")
         findings = await asyncio.to_thread(scanner.parse_output, str(workspace.out))
+        if not findings:
+            logger.info("[%s] No findings parsed — output dir: %s", scan_id[:8], workspace.out)
         state.findings = findings
         state.columns = store.available_columns(findings)
         state.status = "complete"
+        elapsed_total = time.monotonic() - started_at
+        logger.info(
+            "[%s] Scan complete — findings=%d elapsed=%.1fs",
+            scan_id[:8], len(findings), elapsed_total,
+        )
         stage("Parsing results", "done")
 
         # ── SPDX generation (optional, non-fatal) ──────────────────────────
@@ -158,16 +194,25 @@ async def _run_scan(
                     spdx_path = workspace.out / "sbom.spdx.json"
                     if spdx_path.exists():
                         state.spdx_content = spdx_path.read_text()
+                        logger.info("[%s] SPDX SBOM generated (%d bytes)", scan_id[:8], len(state.spdx_content))
                         stage("Generating SPDX SBOM", "done")
                     else:
+                        logger.warning("[%s] SPDX container ran but produced no output file", scan_id[:8])
+                        log_warning("SPDX container ran but produced no output file at /out/sbom.spdx.json.")
                         stage("Generating SPDX SBOM", "error")
                 except Exception as exc:
-                    log(f"SPDX generation failed: {exc}")
+                    logger.exception("[%s] SPDX generation failed: %s", scan_id[:8], exc)
+                    log_warning(f"SPDX generation failed: {exc}")
                     stage("Generating SPDX SBOM", "error")
 
     except Exception as exc:
         state.status = "failed"
         state.error = str(exc)
+        elapsed_total = time.monotonic() - started_at
+        logger.exception(
+            "[%s] Scan failed after %.1fs — tool=%s input=%s: %s",
+            scan_id[:8], elapsed_total, tool_id, input_type, exc,
+        )
         if active_stage:
             stage(active_stage, "error")
         log(f"ERROR: {exc}")
@@ -180,16 +225,21 @@ async def _run_scan(
 @router.websocket("/logs/{scan_id}")
 async def scan_logs(websocket: WebSocket, scan_id: str) -> None:
     await websocket.accept()
+    logger.debug("WebSocket connected for scan %s", scan_id[:8])
 
     state = store.get_scan(scan_id)
     queue = store.get_log_queue(scan_id)
 
     if not state or not queue:
+        logger.warning("WebSocket request for unknown scan_id=%s", scan_id)
         await websocket.close(code=1008)
         return
 
     try:
-        for msg in list(state.logs):
+        buffered = list(state.logs)
+        if buffered:
+            logger.debug("Replaying %d buffered messages to late WebSocket client", len(buffered))
+        for msg in buffered:
             await websocket.send_json(msg)
 
         if state.status in ("complete", "failed"):
@@ -207,6 +257,6 @@ async def scan_logs(websocket: WebSocket, scan_id: str) -> None:
                 break
 
     except WebSocketDisconnect:
-        pass
+        logger.debug("WebSocket disconnected for scan %s", scan_id[:8])
     finally:
         await websocket.close()
