@@ -61,8 +61,16 @@ export interface StartScanResponse {
   session_id: string;
 }
 
+export type StageStatus = "running" | "done" | "error";
+
+export interface StageInfo {
+  label: string;
+  status: StageStatus;
+}
+
 export interface WsMessage {
-  type: "log" | "done" | "ping";
+  type: "log" | "stage" | "done" | "ping";
   message?: string;
-  status?: ScanStatus;
+  status?: ScanStatus | StageStatus;
+  label?: string;
 }
