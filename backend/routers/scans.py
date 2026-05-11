@@ -145,7 +145,10 @@ async def _run_scan(
 
         # ── Run scan container ──────────────────────────────────────────────
         volumes, command = scanner.prepare(workspace, input_type=input_type, image_ref=image_ref)
-        logger.info("[%s] Running scanner container — command=%r", scan_id[:8], command)
+        logger.info(
+            "[%s] Running scanner container — command=%r network=%s",
+            scan_id[:8], command, scanner.network_mode,
+        )
         stage(f"Running {tool_id} scan")
         exit_code = await asyncio.to_thread(
             docker_runner.run_container,
@@ -153,6 +156,7 @@ async def _run_scan(
             command,
             volumes,
             log,
+            scanner.network_mode,
         )
         if exit_code not in (0, 1):
             log_warning(

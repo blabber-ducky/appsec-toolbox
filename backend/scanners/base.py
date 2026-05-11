@@ -19,6 +19,11 @@ class BaseScanner(ABC):
     def supports_spdx(self) -> bool:
         return self.config.get("supports_spdx", False)
 
+    @property
+    def network_mode(self) -> str:
+        # Override in scanners that must fetch rules/data at scan time.
+        return "none"
+
     @abstractmethod
     def prepare(self, workspace: "Workspace", **kwargs) -> tuple[dict, str]:
         """Return (volumes_dict, command_string) for docker run."""
