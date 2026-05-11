@@ -14,7 +14,7 @@ _client: docker.DockerClient | None = None
 def _get_client() -> docker.DockerClient:
     global _client
     if _client is None:
-        _client = docker.from_env()
+        _client = docker.DockerClient(base_url="unix:///var/run/docker.sock")
     return _client
 
 
