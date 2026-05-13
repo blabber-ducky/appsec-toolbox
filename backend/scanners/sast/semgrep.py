@@ -9,11 +9,6 @@ from results.normalizers import normalize_semgrep
 
 
 class SemgrepScanner(BaseScanner):
-    @property
-    def network_mode(self) -> str:
-        # Semgrep downloads rules from semgrep.dev at scan time; needs outbound access.
-        return "bridge"
-
     def prepare(self, workspace: Workspace, **kwargs) -> tuple[dict, str]:
         volumes = {
             str(workspace.src): {"bind": "/src", "mode": "ro"},

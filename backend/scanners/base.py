@@ -21,8 +21,7 @@ class BaseScanner(ABC):
 
     @property
     def network_mode(self) -> str:
-        # Override in scanners that must fetch rules/data at scan time.
-        return "none"
+        return "bridge"
 
     @abstractmethod
     def prepare(self, workspace: "Workspace", **kwargs) -> tuple[dict, str]:
