@@ -37,6 +37,7 @@ function getToolsForType(registry: ToolsRegistry | null, scanType: ScanType): To
     IaC: "iac",
     Build: "build",
     Secrets: "secrets",
+    Mobile: "mobile",
   };
   return registry.tools[map[scanType]] ?? [];
 }

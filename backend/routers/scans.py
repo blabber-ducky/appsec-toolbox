@@ -157,6 +157,8 @@ async def _run_scan(
             volumes,
             log,
             scanner.network_mode,
+            None,
+            scanner.entrypoint,
         )
         if exit_code not in (0, 1):
             log_warning(

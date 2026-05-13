@@ -23,6 +23,10 @@ class BaseScanner(ABC):
     def network_mode(self) -> str:
         return "bridge"
 
+    @property
+    def entrypoint(self) -> str | list | None:
+        return None
+
     @abstractmethod
     def prepare(self, workspace: "Workspace", **kwargs) -> tuple[dict, str]:
         """Return (volumes_dict, command_string) for docker run."""

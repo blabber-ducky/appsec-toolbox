@@ -58,19 +58,20 @@ def run_container(
     command: str,
     volumes: dict[str, dict],
     log: Callable[[str], None],
-    network_mode: str = "none",
+    network_mode: str = "bridge",
     environment: dict | None = None,
+    entrypoint: str | list | None = None,
 ) -> int:
     """Run a container synchronously, stream stdout/stderr, return exit code."""
     client = _get_client()
     logger.info(
-        "Starting container — image=%s network=%s command=%r",
-        image, network_mode, command,
+        "Starting container — image=%s network=%s entrypoint=%r command=%r",
+        image, network_mode, entrypoint, command,
     )
     logger.debug("Volumes: %s", volumes)
     container = None
     try:
-        container = client.containers.run(
+        run_kwargs: dict = dict(
             image=image,
             command=command,
             volumes=volumes,
@@ -80,6 +81,9 @@ def run_container(
             stdout=True,
             stderr=True,
         )
+        if entrypoint is not None:
+            run_kwargs["entrypoint"] = entrypoint
+        container = client.containers.run(**run_kwargs)
         logger.info("Container started — id=%s image=%s", container.short_id, image)
         log(f"[docker] Container {container.short_id} started.")
 

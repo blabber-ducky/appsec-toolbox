@@ -1,4 +1,4 @@
-import { Shield, Package, Server, Box, KeyRound, ChevronRight } from "lucide-react";
+import { Shield, Package, Server, Box, KeyRound, Smartphone, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ScanType } from "@/types";
 
@@ -65,9 +65,20 @@ const SCAN_TYPES: ScanTypeDefinition[] = [
     description:
       "Detect hardcoded API keys, passwords, tokens, and credentials committed to your source code before they are exploited.",
     icon: <KeyRound className="h-8 w-8" />,
-    tools: ["Gitleaks"],
+    tools: ["Gitleaks", "TruffleHog"],
     accentClass: "border-red-200 hover:border-red-400 hover:bg-red-50",
     badgeClass: "bg-red-100 text-red-800",
+  },
+  {
+    id: "Mobile",
+    title: "Mobile",
+    subtitle: "Mobile App Security Testing",
+    description:
+      "Detect insecure code patterns in Android and iOS source code — maps findings to OWASP Mobile Top 10 and MASVS.",
+    icon: <Smartphone className="h-8 w-8" />,
+    tools: ["MobSF"],
+    accentClass: "border-cyan-200 hover:border-cyan-400 hover:bg-cyan-50",
+    badgeClass: "bg-cyan-100 text-cyan-800",
   },
 ];
 

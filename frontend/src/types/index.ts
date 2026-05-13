@@ -1,4 +1,4 @@
-export type ScanType = "SAST" | "SCA" | "IaC" | "Build" | "Secrets";
+export type ScanType = "SAST" | "SCA" | "IaC" | "Build" | "Secrets" | "Mobile";
 export type SeverityLevel = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO" | "UNKNOWN";
 export type ScanStatus = "pending" | "running" | "complete" | "failed";
 export type InputType = "zip" | "git" | "image_tar" | "image_ref";
@@ -20,6 +20,7 @@ export interface ToolsRegistry {
     iac: ToolConfig[];
     build: ToolConfig[];
     secrets: ToolConfig[];
+    mobile: ToolConfig[];
   };
 }
 
