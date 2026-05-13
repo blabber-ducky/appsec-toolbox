@@ -6,13 +6,12 @@ import yaml
 from scanners.base import BaseScanner
 from scanners.sast.semgrep import SemgrepScanner
 from scanners.sast.opengrep import OpenGrepScanner
-from scanners.sca.trivy import TrivySCAScanner
+from scanners.trivy import TrivyScanner
 from scanners.sca.grype import GrypeScanner
 from scanners.sca.syft import SyftScanner
 from scanners.sca.owasp_dc import OWASPDCScanner
 from scanners.iac.kics import KICSScanner
 from scanners.iac.checkov import CheckovScanner
-from scanners.build.trivy_image import TrivyImageScanner
 from scanners.secrets.gitleaks import GitleaksScanner
 from scanners.secrets.trufflehog import TruffleHogScanner
 from scanners.mobile.mobsfscan import MobSFScanScanner
@@ -20,13 +19,12 @@ from scanners.mobile.mobsfscan import MobSFScanScanner
 _REGISTRY: dict[str, type[BaseScanner]] = {
     "semgrep": SemgrepScanner,
     "opengrep": OpenGrepScanner,
-    "trivy-sca": TrivySCAScanner,
+    "trivy": TrivyScanner,
     "grype": GrypeScanner,
     "syft": SyftScanner,
     "owasp-dc": OWASPDCScanner,
     "kics": KICSScanner,
     "checkov": CheckovScanner,
-    "trivy-image": TrivyImageScanner,
     "gitleaks": GitleaksScanner,
     "trufflehog": TruffleHogScanner,
     "mobsfscan": MobSFScanScanner,

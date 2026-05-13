@@ -144,7 +144,7 @@ async def _run_scan(
         stage(f"Pulling {scanner.image}", "done")
 
         # ── Run scan container ──────────────────────────────────────────────
-        volumes, command = scanner.prepare(workspace, input_type=input_type, image_ref=image_ref)
+        volumes, command = scanner.prepare(workspace, input_type=input_type, image_ref=image_ref, scan_type=scan_type)
         logger.info(
             "[%s] Running scanner container — command=%r network=%s",
             scan_id[:8], command, scanner.network_mode,

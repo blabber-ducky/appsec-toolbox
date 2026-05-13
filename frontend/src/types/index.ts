@@ -11,6 +11,7 @@ export interface ToolConfig {
   hint: string;
   supports_spdx: boolean;
   input_type: "source" | "image";
+  recommended?: boolean;
 }
 
 export interface ToolsRegistry {

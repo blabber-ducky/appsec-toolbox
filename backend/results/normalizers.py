@@ -51,7 +51,11 @@ def normalize_semgrep(data: dict, tool_id: str = "semgrep") -> list[Finding]:
     return findings
 
 
-def normalize_trivy_fs(data: dict, tool_id: str = "trivy-sca") -> list[Finding]:
+def normalize_trivy_fs(
+    data: dict,
+    tool_id: str = "trivy",
+    scan_type_label: str = "SCA",
+) -> list[Finding]:
     findings: list[Finding] = []
     for result in data.get("Results", []):
         for vuln in result.get("Vulnerabilities") or []:
@@ -61,7 +65,7 @@ def normalize_trivy_fs(data: dict, tool_id: str = "trivy-sca") -> list[Finding]:
             findings.append(Finding(
                 id=_fid(),
                 tool=tool_id,
-                scan_type="SCA",
+                scan_type=scan_type_label,
                 severity=_sev(vuln.get("Severity", "unknown")),
                 title=vuln.get("Title") or vid or "Unknown vulnerability",
                 description=vuln.get("Description", ""),
@@ -75,10 +79,50 @@ def normalize_trivy_fs(data: dict, tool_id: str = "trivy-sca") -> list[Finding]:
     return findings
 
 
-def normalize_trivy_image(data: dict, tool_id: str = "trivy-image") -> list[Finding]:
-    findings = normalize_trivy_fs(data, tool_id=tool_id)
-    for f in findings:
-        f.scan_type = "Build"
+def normalize_trivy_image(data: dict, tool_id: str = "trivy") -> list[Finding]:
+    return normalize_trivy_fs(data, tool_id=tool_id, scan_type_label="Build")
+
+
+def normalize_trivy_iac(data: dict, tool_id: str = "trivy") -> list[Finding]:
+    findings: list[Finding] = []
+    for result in data.get("Results", []):
+        target = result.get("Target", "?")
+        for misc in result.get("Misconfigurations") or []:
+            refs = list(misc.get("References", []))
+            if misc.get("PrimaryURL"):
+                refs = [misc["PrimaryURL"]] + refs
+            findings.append(Finding(
+                id=_fid(),
+                tool=tool_id,
+                scan_type="IaC",
+                severity=_sev(misc.get("Severity", "unknown")),
+                title=misc.get("Title", misc.get("ID", "Unknown misconfiguration")),
+                description=misc.get("Description", misc.get("Message", "")),
+                location=target,
+                rule_id=misc.get("ID", misc.get("AVDID", "")),
+                references=refs[:3],
+                raw=misc,
+            ))
+    return findings
+
+
+def normalize_trivy_secrets(data: dict, tool_id: str = "trivy") -> list[Finding]:
+    findings: list[Finding] = []
+    for result in data.get("Results", []):
+        target = result.get("Target", "?")
+        for secret in result.get("Secrets") or []:
+            findings.append(Finding(
+                id=_fid(),
+                tool=tool_id,
+                scan_type="Secrets",
+                severity=_sev(secret.get("Severity", "high")),
+                title=secret.get("Title", secret.get("RuleID", "Secret detected")),
+                description=f"Category: {secret.get('Category', '?')}",
+                location=f"{target}:{secret.get('StartLine', '?')}",
+                rule_id=secret.get("RuleID", ""),
+                references=[],
+                raw=secret,
+            ))
     return findings
 
 
@@ -202,7 +246,7 @@ def normalize_syft(data: dict, tool_id: str = "syft") -> list[Finding]:
     return findings
 
 
-def normalize_checkov(data, tool_id: str = "checkov") -> list[Finding]:
+def normalize_checkov(data, tool_id: str = "checkov", scan_type_label: str = "IaC") -> list[Finding]:
     entries = data if isinstance(data, list) else [data]
     findings: list[Finding] = []
     for entry in entries:
@@ -223,7 +267,7 @@ def normalize_checkov(data, tool_id: str = "checkov") -> list[Finding]:
             findings.append(Finding(
                 id=_fid(),
                 tool=tool_id,
-                scan_type="IaC",
+                scan_type=scan_type_label,
                 severity=sev,
                 title=check.get("check_name", check.get("check_id", "Unknown check")),
                 description=desc,

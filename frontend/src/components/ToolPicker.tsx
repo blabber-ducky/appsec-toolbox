@@ -40,6 +40,11 @@ export default function ToolPicker({ tools, selectedId, onChange }: ToolPickerPr
                     )}
                   </div>
                   <span className="font-medium text-sm">{tool.name}</span>
+                  {tool.recommended && (
+                    <span className="text-[10px] font-semibold border border-blue-300 text-blue-700 bg-blue-50 rounded px-1.5 py-0.5">
+                      Recommended
+                    </span>
+                  )}
                   {tool.supports_spdx && (
                     <span className="text-[10px] font-mono border border-green-300 text-green-700 bg-green-50 rounded px-1.5 py-0.5">
                       SPDX

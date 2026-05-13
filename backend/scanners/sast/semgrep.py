@@ -1,23 +1,32 @@
 from __future__ import annotations
 import json
+import logging
 from pathlib import Path
 
 from scanners.base import BaseScanner
-from core.workspace import Workspace
-from results.models import Finding
 from results.normalizers import normalize_semgrep
+
+logger = logging.getLogger(__name__)
 
 
 class SemgrepScanner(BaseScanner):
-    def prepare(self, workspace: Workspace, **kwargs) -> tuple[dict, str]:
+    def __init__(self, config: dict) -> None:
+        super().__init__(config)
+        self._scan_mode = "SAST"
+
+    def prepare(self, workspace, scan_type=None, **kwargs) -> tuple[dict, str]:
+        mode = (scan_type or "SAST").strip()
+        self._scan_mode = mode
         volumes = {
             str(workspace.src): {"bind": "/src", "mode": "ro"},
             str(workspace.out): {"bind": "/out", "mode": "rw"},
         }
-        command = "semgrep scan --json --output /out/results.json --config auto /src"
+        config_flag = "p/secrets" if mode == "Secrets" else "auto"
+        command = f"semgrep scan --json --output /out/results.json --config {config_flag} /src"
+        logger.info("SemgrepScanner mode=%s config=%s", mode, config_flag)
         return volumes, command
 
-    def parse_output(self, out_dir: str) -> list[Finding]:
+    def parse_output(self, out_dir: str) -> list:
         out = Path(out_dir) / "results.json"
         if not out.exists():
             return []
@@ -25,4 +34,8 @@ class SemgrepScanner(BaseScanner):
             data = json.loads(out.read_text())
         except (json.JSONDecodeError, OSError):
             return []
-        return normalize_semgrep(data)
+        findings = normalize_semgrep(data, tool_id=self.config["id"])
+        if self._scan_mode == "Secrets":
+            for f in findings:
+                f.scan_type = "Secrets"
+        return findings

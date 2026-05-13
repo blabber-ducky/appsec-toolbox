@@ -3,42 +3,43 @@ tools:
     - id: semgrep
       name: Semgrep
       image: semgrep/semgrep:latest
+      recommended: true
       tooltip: >
         Semgrep finds bugs and security issues using pattern-matching rules.
-        It supports 30+ languages and auto-detects your stack. Great for custom
-        org-wide policies or running the community ruleset out of the box.
+        It supports 30+ languages and auto-detects your stack with the community
+        ruleset. Great for custom org-wide policies too.
       hint: >
         Works best on Python, JavaScript/TypeScript, Go, Java, Ruby, PHP, C/C++,
-        and more. Upload a ZIP of your source tree or paste a Git URL — Semgrep
-        will auto-select the right rules for your languages.
+        and more. Upload a ZIP or paste a Git URL — Semgrep auto-selects rules
+        for your languages.
       supports_spdx: false
       input_type: source
 
     - id: opengrep
       name: OpenGrep
       image: ghcr.io/opengrep/opengrep:latest
+      recommended: false
       tooltip: >
         OpenGrep is the open-source continuation of Semgrep OSS — fully
-        community-driven with no proprietary telemetry. It runs the same
-        pattern-matching engine with support for 30+ languages and is
-        compatible with the existing Semgrep rule ecosystem.
+        community-driven with no proprietary telemetry. Runs the same
+        pattern-matching engine and is compatible with the Semgrep rule ecosystem.
       hint: >
         Works with the same rule configs as Semgrep. Upload a ZIP or paste a
-        Git URL — OpenGrep will auto-detect languages and apply the default
-        ruleset. A great alternative if you need a fully open-source scanner.
+        Git URL — OpenGrep auto-detects languages and applies the default ruleset.
       supports_spdx: false
       input_type: source
 
   sca:
-    - id: trivy-sca
-      name: Trivy (SCA)
+    - id: trivy
+      name: Trivy
       image: aquasec/trivy:latest
+      recommended: true
       tooltip: >
-        Trivy scans your dependency manifests and lock files for known CVEs using
-        the OSV, NVD, and GitHub Advisory databases. It covers npm, pip, Maven,
+        Trivy scans dependency manifests and lock files for known CVEs using
+        the OSV, NVD, and GitHub Advisory databases. Covers npm, pip, Maven,
         Go modules, Cargo, Composer, and more.
       hint: >
-        Make sure your lock files are included in the ZIP — package-lock.json,
+        Make sure lock files are included in the ZIP — package-lock.json,
         requirements.txt, go.sum, pom.xml, Cargo.lock etc. Trivy reads them all
         automatically. SPDX SBOM export is available after scanning.
       supports_spdx: true
@@ -47,11 +48,11 @@ tools:
     - id: grype
       name: Grype
       image: anchore/grype:latest
+      recommended: false
       tooltip: >
-        Grype (by Anchore) scans filesystems and container images for known
-        vulnerabilities using an offline-capable database sourced from NVD, GHSA,
-        and OS vendor advisories. Pairs naturally with Syft for full SBOM-driven
-        scanning.
+        Grype (by Anchore) scans filesystems for known vulnerabilities using an
+        offline-capable database sourced from NVD, GHSA, and OS vendor advisories.
+        Pairs naturally with Syft for full SBOM-driven scanning.
       hint: >
         Upload a ZIP of your project directory. Grype auto-detects package
         manifests (npm, pip, Maven, Go, Ruby, .NET and more) and matches them
@@ -62,37 +63,53 @@ tools:
     - id: syft
       name: Syft (SBOM)
       image: anchore/syft:latest
+      recommended: false
       tooltip: >
-        Syft (by Anchore) generates a Software Bill of Materials (SBOM) from
-        your source tree, listing every dependency, its version, license, and
-        PURL. Use it to understand your software supply chain and export a
-        standards-compliant SPDX SBOM.
+        Syft (by Anchore) generates a Software Bill of Materials listing every
+        dependency, its version, license, and PURL. Use it to understand your
+        software supply chain and export a standards-compliant SPDX SBOM.
       hint: >
         Upload a ZIP or paste a Git URL. Syft produces an inventory of all
         detected packages — results appear as INFO findings (no severity, just
-        visibility). SPDX SBOM export is available for downstream vulnerability
-        scanning or compliance workflows.
+        visibility). SPDX SBOM export is available for downstream tooling.
       supports_spdx: true
       input_type: source
 
     - id: owasp-dc
       name: OWASP Dependency Check
       image: owasp/dependency-check:latest
+      recommended: false
       tooltip: >
         OWASP Dependency Check identifies project dependencies with published CVEs
-        using the NVD database. It excels at Java/Maven/Gradle and .NET projects,
+        using the NVD database. Excels at Java/Maven/Gradle and .NET projects,
         and also covers Python, Ruby, and Node.
       hint: >
-        First run downloads the NVD data (~200MB) which takes 2-5 minutes — grab
-        a coffee. Subsequent scans reuse the cached data and are much faster.
-        Best results with Java or .NET projects that have clear dependency manifests.
+        First run downloads the NVD data (~200MB) which takes 2-5 minutes. Subsequent
+        scans reuse the cached data and are much faster. Best results with Java or
+        .NET projects that have clear dependency manifests.
       supports_spdx: false
       input_type: source
 
   iac:
+    - id: checkov
+      name: Checkov
+      image: bridgecrew/checkov:latest
+      recommended: true
+      tooltip: >
+        Checkov (by Prisma Cloud) scans Terraform, CloudFormation, Kubernetes,
+        Helm, Dockerfile, Serverless, and ARM templates for misconfigurations and
+        compliance violations against CIS, NIST, PCI-DSS, SOC2, and HIPAA benchmarks.
+      hint: >
+        Upload a ZIP of your IaC directory. Checkov auto-detects framework types
+        across subdirectories and applies 1,000+ built-in policies. Results include
+        the check ID, resource name, file path, and a guideline link for remediation.
+      supports_spdx: false
+      input_type: source
+
     - id: kics
       name: Checkmarx KICS
       image: checkmarx/kics:latest
+      recommended: false
       tooltip: >
         KICS (Keeping Infrastructure as Code Secure) scans Terraform, Helm charts,
         Dockerfiles, Kubernetes YAML, CloudFormation, Ansible, and more for
@@ -104,63 +121,79 @@ tools:
       supports_spdx: false
       input_type: source
 
-    - id: checkov
-      name: Checkov
-      image: bridgecrew/checkov:latest
+    - id: trivy
+      name: Trivy
+      image: aquasec/trivy:latest
+      recommended: false
       tooltip: >
-        Checkov (by Prisma Cloud) scans Terraform, CloudFormation, Kubernetes,
-        Helm, Dockerfile, Serverless, and ARM templates for security
-        misconfigurations and compliance violations against CIS, NIST, PCI-DSS,
-        SOC2, and HIPAA benchmarks.
+        Trivy's config scanner detects misconfigurations in Terraform, Kubernetes,
+        Dockerfile, Helm, CloudFormation, and more using the same Aqua AVD policy
+        library — no separate tool install required if you already use Trivy for SCA.
       hint: >
-        Upload a ZIP of your IaC directory. Checkov auto-detects framework types
-        across subdirectories and applies 1,000+ built-in policies. Results
-        include the check ID, resource name, file path, and a guideline link for
-        remediation.
+        Upload a ZIP containing your IaC files. Trivy auto-detects framework types
+        and runs the config scanner. Findings include an AVD URL for detailed
+        remediation guidance.
       supports_spdx: false
       input_type: source
 
   secrets:
+    - id: trufflehog
+      name: TruffleHog
+      image: trufflesecurity/trufflehog:latest
+      recommended: true
+      tooltip: >
+        TruffleHog v3 finds leaked credentials using 700+ detectors covering cloud
+        providers, SaaS APIs, databases, and private keys. Its standout feature is
+        live verification — it actively tests found credentials to confirm they are
+        still valid.
+      hint: >
+        Upload a ZIP or paste a Git URL. Verified secrets (confirmed live) are marked
+        CRITICAL; unverified matches are HIGH. TruffleHog uses embedded detectors and
+        does not need network access to scan — verification calls are made only for
+        confirmed pattern matches.
+      supports_spdx: false
+      input_type: source
+
     - id: gitleaks
       name: Gitleaks
       image: zricethezav/gitleaks:latest
+      recommended: false
       tooltip: >
         Gitleaks detects hardcoded secrets — API keys, passwords, tokens, and
-        credentials — in your source code using a comprehensive library of regex
-        rules combined with entropy analysis. Covers AWS, GCP, GitHub, Slack,
-        Stripe, and hundreds of other secret types.
+        credentials — using a comprehensive library of regex rules combined with
+        entropy analysis. Covers AWS, GCP, GitHub, Slack, Stripe, and hundreds more.
       hint: >
-        Upload a ZIP of your source tree or paste a Git URL. Gitleaks scans all
-        file types recursively. Results show the file, line number, and the rule
-        that matched. Secrets are not echoed back in full — only the matched
+        Upload a ZIP or paste a Git URL. Results show the file, line number, and
+        the rule that matched. Secrets are not echoed in full — only the matched
         fragment is shown so the report itself is safe to share.
       supports_spdx: false
       input_type: source
 
-    - id: trufflehog
-      name: TruffleHog
-      image: trufflesecurity/trufflehog:latest
+    - id: semgrep
+      name: Semgrep
+      image: semgrep/semgrep:latest
+      recommended: false
       tooltip: >
-        TruffleHog v3 finds leaked credentials using 700+ detectors covering
-        cloud providers, SaaS APIs, databases, and private keys. Its standout
-        feature is live verification — it actively tests found credentials to
-        confirm whether they are still valid before flagging them.
+        Semgrep's secrets ruleset (p/secrets) detects hardcoded credentials, tokens,
+        and keys using pattern-matching rules contributed by the community and r2c.
+        Runs the same engine as the SAST scanner — pick it here for secret-focused
+        results without running a full SAST scan.
       hint: >
-        Upload a ZIP or paste a Git URL. Verified secrets (confirmed live) are
-        marked CRITICAL; unverified matches are HIGH. TruffleHog uses embedded
-        detectors and does not need network access to scan — verification calls
-        are made to the relevant APIs only for confirmed pattern matches.
+        Upload a ZIP or paste a Git URL. Semgrep will run the p/secrets ruleset only,
+        targeting API keys, passwords, and credentials. For broader code security
+        analysis, use Semgrep under the SAST category instead.
       supports_spdx: false
       input_type: source
 
   build:
-    - id: trivy-image
-      name: Trivy (Image Scan)
+    - id: trivy
+      name: Trivy
       image: aquasec/trivy:latest
+      recommended: true
       tooltip: >
         Trivy scans Docker images for OS package CVEs (Alpine, Debian, Ubuntu,
         RHEL, CentOS) and application dependency vulnerabilities without running
-        the image. Checks the image filesystem layer by layer.
+        the image. Industry-standard for container security scanning.
       hint: >
         Provide a registry reference (e.g. nginx:latest, python:3.12-slim) to pull
         and scan, or upload a .tar.gz exported with "docker save myimage | gzip >
@@ -168,19 +201,50 @@ tools:
       supports_spdx: true
       input_type: image
 
+    - id: grype
+      name: Grype
+      image: anchore/grype:latest
+      recommended: false
+      tooltip: >
+        Grype scans Docker image archives for OS and application CVEs using the
+        Anchore vulnerability database. A lighter-weight alternative to Trivy for
+        teams already using Anchore's toolchain.
+      hint: >
+        Upload a Docker image tar.gz (created with "docker save myimage | gzip >
+        image.tar.gz") or provide a registry reference. Grype matches OS packages
+        and language-specific dependencies against NVD, GHSA, and OS advisories.
+      supports_spdx: false
+      input_type: image
+
+    - id: syft
+      name: Syft (Image SBOM)
+      image: anchore/syft:latest
+      recommended: false
+      tooltip: >
+        Syft generates a comprehensive SBOM from a Docker image, cataloguing every
+        OS package and application dependency layer by layer. Use the SPDX export
+        to feed results into Grype or another vulnerability scanner.
+      hint: >
+        Upload a Docker image tar.gz or provide a registry reference. Syft produces
+        an inventory of all packages in the image — results appear as INFO findings.
+        SPDX SBOM export is available for downstream vulnerability scanning.
+      supports_spdx: true
+      input_type: image
+
   mobile:
     - id: mobsfscan
       name: MobSF (mobsfscan)
       image: opensecurity/mobsfscan:latest
+      recommended: true
       tooltip: >
         mobsfscan is the static analysis engine from Mobile Security Framework
-        (MobSF). It detects insecure code patterns in Android (Java, Kotlin,
-        XML) and iOS (Swift, Objective-C) source code, mapping findings to
-        OWASP Mobile Top 10 and MASVS.
+        (MobSF). It detects insecure code patterns in Android (Java, Kotlin, XML)
+        and iOS (Swift, Objective-C) source code, mapping findings to OWASP Mobile
+        Top 10 and MASVS.
       hint: >
-        Upload a ZIP of your Android or iOS source tree. mobsfscan auto-detects
-        platform type and applies the relevant ruleset. Findings include the rule
-        ID, OWASP Mobile mapping, CWE, and the exact file and line number where
-        the issue was detected.
+        Upload a ZIP of your Android or iOS source tree. mobsfscan auto-detects the
+        platform and applies the relevant ruleset. Findings include the rule ID, OWASP
+        Mobile mapping, CWE, and the exact file and line number where the issue was
+        detected.
       supports_spdx: false
       input_type: source
