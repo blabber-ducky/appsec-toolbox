@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -248,9 +248,8 @@ export default function ResultsTable({
                 table.getRowModel().rows.map((row) => {
                   const isExpanded = expandedRows.has(row.id);
                   return (
-                    <>
+                    <React.Fragment key={row.id}>
                       <tr
-                        key={row.id}
                         className="hover:bg-muted/30 cursor-pointer transition-colors"
                         onClick={() => toggleRow(row.id)}
                       >
@@ -267,7 +266,7 @@ export default function ResultsTable({
                         ))}
                       </tr>
                       {isExpanded && (
-                        <tr key={`${row.id}-expanded`} className="bg-muted/20">
+                        <tr className="bg-muted/20">
                           <td />
                           <td colSpan={columns.length} className="px-3 pb-3 pt-1">
                             <div className="space-y-2 text-xs">
@@ -306,7 +305,7 @@ export default function ResultsTable({
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })
               )}
