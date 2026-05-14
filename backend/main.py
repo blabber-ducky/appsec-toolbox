@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from routers import tools, scans, results
+from routers import tools, scans, results, multiscan
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,6 +28,7 @@ app.add_middleware(
 app.include_router(tools.router)
 app.include_router(scans.router)
 app.include_router(results.router)
+app.include_router(multiscan.router)
 
 
 @app.get("/api/health")

@@ -1,4 +1,4 @@
-import { Shield, Package, Server, Box, KeyRound, Smartphone, ChevronRight } from "lucide-react";
+import { Shield, Package, Server, Box, KeyRound, Smartphone, ChevronRight, Layers } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ScanType } from "@/types";
 
@@ -84,9 +84,10 @@ const SCAN_TYPES: ScanTypeDefinition[] = [
 
 interface ScanTypeCardProps {
   onSelect: (type: ScanType) => void;
+  onMultiScan: () => void;
 }
 
-export default function ScanTypeCards({ onSelect }: ScanTypeCardProps) {
+export default function ScanTypeCards({ onSelect, onMultiScan }: ScanTypeCardProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white border-b px-8 py-5">
@@ -108,8 +109,7 @@ export default function ScanTypeCards({ onSelect }: ScanTypeCardProps) {
               What do you want to scan?
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Pick a scan type. Each tool runs as an ephemeral container — results are shown
-              inline and can be exported as CSV.
+              Pick a scan type, or run multiple scan types in parallel.
             </p>
           </div>
 
@@ -145,6 +145,36 @@ export default function ScanTypeCards({ onSelect }: ScanTypeCardProps) {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Multi-scan card — full width */}
+            <Card
+              className="cursor-pointer border-2 border-violet-200 hover:border-violet-400 hover:bg-violet-50 transition-all duration-150 sm:col-span-2"
+              onClick={onMultiScan}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center gap-5">
+                  <div className="p-2 rounded-lg bg-violet-100 text-violet-800 shrink-0">
+                    <Layers className="h-8 w-8" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="text-xl font-bold">Multi-Scan</h3>
+                      <span className="text-[10px] font-semibold border border-violet-300 text-violet-700 bg-violet-50 rounded px-1.5 py-0.5">
+                        PARALLEL
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      Run multiple scan types simultaneously
+                    </p>
+                    <p className="text-sm text-foreground/80 leading-relaxed">
+                      Select any combination of SAST, SCA, IaC, Secrets, Build, and Mobile scans.
+                      All chosen scanners run in parallel — results land in separate tabs with individual CSV exports.
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

@@ -13,11 +13,13 @@ import ResultsTable from "@/components/ResultsTable";
 import ColumnSelector from "@/components/ColumnSelector";
 import ExportBar from "@/components/ExportBar";
 import ScanLogsDialog from "@/components/ScanLogsDialog";
+import MultiScanFlow from "@/components/MultiScanFlow";
 import { useResults } from "@/hooks/useResults";
 import { api } from "@/lib/api";
 import type { ScanType, ScanStatus, ToolConfig, ToolsRegistry } from "@/types";
 
 type Step = "home" | "tool" | "input" | "running" | "results";
+type FlowMode = "single" | "multi";
 
 function getSessionId(): string {
   const key = "appsec-session-id";
@@ -43,6 +45,7 @@ function getToolsForType(registry: ToolsRegistry | null, scanType: ScanType): To
 }
 
 export default function App() {
+  const [flowMode, setFlowMode] = useState<FlowMode>("single");
   const [step, setStep] = useState<Step>("home");
   const [scanType, setScanType] = useState<ScanType | null>(null);
   const [toolId, setToolId] = useState<string | null>(null);
@@ -236,11 +239,21 @@ export default function App() {
     );
   }
 
+  // Multi-scan flow — fully self-contained component
+  if (flowMode === "multi" && toolRegistry) {
+    return (
+      <MultiScanFlow
+        registry={toolRegistry}
+        onExit={() => { setFlowMode("single"); setStep("home"); }}
+      />
+    );
+  }
+
   // Wizard layout for home / tool / input / running steps
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {step === "home" ? (
-        <ScanTypeCards onSelect={handleSelectType} />
+        <ScanTypeCards onSelect={handleSelectType} onMultiScan={() => setFlowMode("multi")} />
       ) : (
         <>
           <header className="bg-white border-b px-8 py-4 flex items-center gap-3">

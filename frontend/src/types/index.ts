@@ -76,6 +76,18 @@ export interface StartScanResponse {
   session_id: string;
 }
 
+export interface MultiScanEntry {
+  scan_id: string;
+  scan_type: ScanType;
+  tool_id: string;
+}
+
+export interface StartMultiScanResponse {
+  multiscan_id: string;
+  session_id: string;
+  scans: MultiScanEntry[];
+}
+
 export type StageStatus = "running" | "done" | "error";
 
 export interface StageInfo {

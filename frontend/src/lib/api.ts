@@ -2,6 +2,7 @@ import type {
   ResultsResponse,
   ScanLogsResponse,
   StartScanResponse,
+  StartMultiScanResponse,
   ToolsRegistry,
 } from "@/types";
 
@@ -23,6 +24,9 @@ export const api = {
 
   startScan: (formData: FormData) =>
     request<StartScanResponse>("/scan/start", { method: "POST", body: formData }),
+
+  startMultiScan: (formData: FormData) =>
+    request<StartMultiScanResponse>("/multiscan/start", { method: "POST", body: formData }),
 
   getResults: (scanId: string) =>
     request<ResultsResponse>(`/results/${scanId}`),
