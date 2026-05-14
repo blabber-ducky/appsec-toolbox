@@ -2,17 +2,21 @@
 
 AppSec Toolbox is a web-based security scanning hub. You point it at source code or a container image and it runs the scanner of your choice, streaming live output and presenting normalized findings in a sortable table.
 
+There are two modes: **Single Scan** (one category, one tool, one result set) and **Multi-Scan** (multiple categories and tools running in parallel, tabbed results).
+
 ---
 
 ## Navigating the UI
 
-The app walks you through a four-step wizard: **scan type → tool → input → results**.
+**Single scan** walks you through a four-step wizard: **scan type → tool → input → results**. A breadcrumb trail at the top lets you jump backwards. If you already have results loaded, you'll be asked to confirm before the current data is cleared.
 
-A breadcrumb trail at the top lets you jump backwards. If you already have results loaded, you'll be asked to confirm before the current data is cleared.
+**Multi-Scan** has its own four-step wizard accessed via the **Multi-Scan** card at the bottom of the home screen: **select types → provide input → select tools → results**.
 
 ---
 
-## Step 1 — Choose a Scan Category
+## Single Scan
+
+### Step 1 — Choose a Scan Category
 
 The home screen shows six category cards. Pick the one that matches what you want to analyze.
 
@@ -27,7 +31,7 @@ The home screen shows six category cards. Pick the one that matches what you wan
 
 ---
 
-## Step 2 — Select a Tool
+## Step 2 — Select a Tool (single scan)
 
 Each category offers one or more tools. Tools labeled **Recommended** are good choices if you have no specific preference.
 
@@ -39,7 +43,7 @@ Multi-category tools (e.g. Trivy, Semgrep) appear in every category they support
 
 ---
 
-## Step 3 — Provide Input
+## Step 3 — Provide Input (single scan)
 
 ### Source code
 
@@ -67,7 +71,7 @@ Then upload the resulting file.
 
 ---
 
-## Step 4 — Watch the Scan Run
+## Step 4 — Watch the Scan Run (single scan)
 
 The scan runs in a container on the server. Log output streams live to your browser over a WebSocket connection. You'll see:
 
@@ -76,6 +80,72 @@ The scan runs in a container on the server. Log output streams live to your brow
 - **Warnings** if the scanner exits with a non-zero code
 
 The progress bar advances as stages complete. The scan finishes when you see "Parsing results."
+
+---
+
+---
+
+## Multi-Scan
+
+Multi-Scan lets you run any combination of scan types simultaneously against the same codebase or container image. Results from all scans appear in a single tabbed view when all scanners finish.
+
+### Step 1 — Select scan types
+
+Click **Multi-Scan** on the home screen. A checkbox grid shows all six scan categories. Select two or more and click **Continue**.
+
+Types are grouped by their input requirement:
+
+| Input kind | Scan types |
+|---|---|
+| Source code (ZIP or Git URL) | SAST, SCA, IaC, Secrets, Mobile |
+| Container image (tar.gz or registry ref) | Build |
+
+If you select only source-based types you'll only be asked for source code. If you include Build you'll also be asked for an image — both inputs are collected in the same step.
+
+### Step 2 — Provide input
+
+The input panel shows only the sections you need:
+
+- **Source code section** — appears when any source-based scan type is selected. Toggle between ZIP upload and Git URL using the tab at the top of the section.
+- **Container image section** — appears when Build is selected. Toggle between uploading a `.tar.gz` and providing a registry reference.
+
+Prepare your inputs:
+
+```bash
+# Source code ZIP
+zip -r my-project.zip .
+
+# Container image tar.gz
+docker save my-image:tag | gzip > image.tar.gz
+```
+
+### Step 3 — Select tools
+
+One tool picker appears per selected scan type, each with its own section header showing the scan category. Pick one scanner per type. Tools marked **Recommended** are sensible defaults.
+
+Click **Start N parallel scans** when all types have a tool selected.
+
+### Step 4 — Watch scans run in parallel
+
+The running screen shows a panel for each scan. All panels start simultaneously — you do not wait for one to finish before the next begins. Each panel shows:
+
+- The scan type badge and tool name
+- Live stage progress (pull image → run scan → parse results)
+- A collapsible terminal output log for that scan specifically
+
+The screen advances to results automatically once every scan has finished (complete or failed).
+
+### Step 5 — Tabbed results
+
+Results are presented in tabs across the top of the page — one tab per scan type. Each tab shows:
+
+- **Finding count** badge (amber = findings present, gray = clean, red = scan failed)
+- The full **results table** with severity filter, sorting, and expandable rows
+- **Export CSV** — downloads findings for that tab only, respecting your column selection
+- **Export SPDX** — available on tabs where the tool produced an SBOM (Trivy, Syft)
+- **Scan Logs** — opens the full container output for that specific scan
+
+Switching between tabs does not lose your column selection for other tabs.
 
 ---
 

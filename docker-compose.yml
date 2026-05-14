@@ -1,6 +1,6 @@
 services:
   appsec-toolbox:
-    build: .
+    image: m1v1n/appsec-toolbox:latest
     ports:
       - "8080:8080"
     volumes:

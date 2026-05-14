@@ -75,6 +75,45 @@ Use `scan_id` to connect to the log WebSocket and poll for results.
 
 ---
 
+### `POST /api/multiscan/start`
+
+Starts multiple scans in parallel against a shared input. Returns immediately; all scan tasks run concurrently as background jobs.
+
+**Request** — `multipart/form-data`
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `configs` | string (JSON) | yes | Array of `{scan_type, tool_id}` objects, e.g. `[{"scan_type":"SAST","tool_id":"semgrep"},{"scan_type":"SCA","tool_id":"trivy"}]` |
+| `source_input_type` | string | no | `zip` (default) or `git` — how source code is provided |
+| `image_input_type` | string | no | `image_ref` (default) or `image_tar` — how container image is provided |
+| `session_id` | string | no | Browser session ID. If supplied, prior scans for this session are purged. |
+| `source_file` | binary | conditional | ZIP of source code — required when `source_input_type` is `zip` and any source-based scan type is selected |
+| `git_url` | string | conditional | Required when `source_input_type` is `git` |
+| `image_file` | binary | conditional | Docker image tar.gz — required when `image_input_type` is `image_tar` and Build is selected |
+| `image_ref` | string | conditional | Registry reference — required when `image_input_type` is `image_ref` and Build is selected |
+
+Source-based scan types: `SAST`, `SCA`, `IaC`, `Secrets`, `Mobile`. Image-based: `Build`.
+
+**Response** `200 OK`
+
+```json
+{
+  "multiscan_id": "a1b2c3d4-...",
+  "session_id": "7b3f9c21-...",
+  "scans": [
+    { "scan_id": "uuid-1", "scan_type": "SAST",    "tool_id": "semgrep" },
+    { "scan_id": "uuid-2", "scan_type": "SCA",     "tool_id": "trivy"   },
+    { "scan_id": "uuid-3", "scan_type": "Secrets", "tool_id": "trufflehog" }
+  ]
+}
+```
+
+Each `scan_id` in `scans` is a fully independent scan — connect a WebSocket to `/api/scan/logs/{scan_id}` and poll `/api/results/{scan_id}` for each one individually, exactly as you would for a single scan.
+
+**Workspace sharing**: source code is extracted once and mounted read-only into all source-based scanner containers. Each scanner writes to its own isolated output directory so concurrent writes never collide.
+
+---
+
 ### `WS /api/scan/logs/{scan_id}`
 
 WebSocket endpoint for live scan log streaming.

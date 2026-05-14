@@ -11,10 +11,11 @@ Every scanner runs as an ephemeral Docker container pulled on demand. Results li
 - **6 scan categories** — SAST, SCA, IaC, Secrets, Build (container image), Mobile
 - **12 scanners** across all categories, with recommended defaults highlighted
 - **Multi-category tools** — Trivy, Semgrep, Grype, Syft, and Checkov each appear in every category they support, with the right command selected automatically
+- **Multi-Scan mode** — select any combination of scan types, pick one tool per type, and run all scanners in parallel with a single upload; results appear in a tabbed view with per-tab CSV export
 - **Live scan log streaming** over WebSocket with replay for late-connecting clients
 - **Normalized findings table** — sortable, filterable by severity, with expandable raw detail rows
 - **Dynamic column selection** — only columns with data in the result set are shown; you pick which to display
-- **CSV export** respecting your column selection
+- **CSV export** respecting your column selection (per scan type in Multi-Scan mode)
 - **SPDX SBOM export** for tools that produce a software bill of materials (Trivy SCA, Trivy Build, Syft)
 - **Scan log viewer** — inspect the full container output after a scan completes
 - No disk persistence — zero cleanup required
@@ -41,11 +42,26 @@ Every scanner runs as an ephemeral Docker container pulled on demand. Results li
 - Docker Engine (or Docker Desktop) running on the host
 - Docker Compose v2
 
-### Run
+### Run (from Docker Hub — recommended)
 
 ```bash
-git clone <repo-url> appsec-toolbox
+curl -fsSL https://raw.githubusercontent.com/blabber-ducky/appsec-toolbox/main/docker-compose.yml -o docker-compose.yml
+docker compose up -d
+```
+
+Or with a pinned version tag:
+
+```bash
+# docker-compose.yml image: m1v1n/appsec-toolbox:v1.0.0
+docker compose up -d
+```
+
+### Run (build from source)
+
+```bash
+git clone https://github.com/blabber-ducky/appsec-toolbox.git
 cd appsec-toolbox
+# Override the image line to build locally:
 docker compose up --build
 ```
 
@@ -63,6 +79,8 @@ docker compose down
 
 ## How to Use
 
+### Single scan
+
 1. **Choose a scan category** from the home screen.
 2. **Select a tool** — tools marked "Recommended" are good defaults if you have no preference. Hover the info icon for a description of what each tool does.
 3. **Provide input** — upload a ZIP of your source tree, paste a Git URL, or upload/reference a Docker image (for Build scans).
@@ -70,6 +88,16 @@ docker compose down
 5. Explore **findings** in the results table. Filter by severity, sort any column, expand rows for raw detail.
 6. **Export** results as CSV or SPDX SBOM if available.
 7. Click **New Scan** to start over. Results are wiped from memory.
+
+### Multi-Scan (parallel)
+
+1. Click **Multi-Scan** on the home screen.
+2. **Select scan types** — pick two or more categories (e.g. SAST + SCA + Secrets).
+3. **Provide input** — source code (ZIP or Git URL) for code-based scans, plus a container image if Build is selected. Both inputs are collected in one step.
+4. **Select tools** — choose one scanner per scan type.
+5. Watch all scans **run in parallel**, each with its own live log panel.
+6. Browse **tabbed results** — one tab per scan type, each showing finding count, severity breakdown, and the full results table.
+7. **Export** each tab independently as CSV (and SPDX where available).
 
 ---
 
@@ -102,20 +130,25 @@ Browser
   ▼
 FastAPI (port 8080)          ← serves React SPA + API
   │
-  ├── POST /api/scan/start   ← triggers background scan task
-  ├── WS   /api/scan/logs/{scan_id}  ← live log stream
-  ├── GET  /api/results/{scan_id}    ← normalized findings
-  ├── GET  /api/results/{scan_id}/export/csv
-  ├── GET  /api/results/{scan_id}/export/spdx
-  └── GET  /api/tools        ← tool registry for UI rendering
+  ├── POST /api/scan/start        ← single scan
+  ├── POST /api/multiscan/start   ← parallel multi-scan
+  ├── WS   /api/scan/logs/{id}    ← live log stream (one per scan)
+  ├── GET  /api/results/{id}      ← normalized findings
+  ├── GET  /api/results/{id}/export/csv
+  ├── GET  /api/results/{id}/export/spdx
+  └── GET  /api/tools             ← tool registry for UI
 
   │  Docker SDK (unix socket)
   ▼
 Host Docker Daemon
   │
-  └── ephemeral tool containers (one per scan)
-        volumes: /tmp/appsec-<scan-id>/src  (read-only)
-                 /tmp/appsec-<scan-id>/out  (read-write)
+  ├── single scan: one ephemeral tool container
+  │     /tmp/appsec-<scan-id>/src   (read-only)
+  │     /tmp/appsec-<scan-id>/out   (read-write)
+  │
+  └── multi-scan: N containers in parallel
+        /tmp/appsec-ms-<id>/src              (shared, read-only)
+        /tmp/appsec-ms-<id>/scans/<id>/out   (per-scan, read-write)
 ```
 
 See [docs/architecture.md](docs/architecture.md) for a full breakdown.

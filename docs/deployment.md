@@ -6,7 +6,25 @@ AppSec Toolbox is designed as a single-user local tool. This document covers run
 
 ## Default Deployment (Local / Single-User)
 
+Pull the published image and start with one command — no source checkout required:
+
 ```bash
+curl -fsSL https://raw.githubusercontent.com/blabber-ducky/appsec-toolbox/main/docker-compose.yml -o docker-compose.yml
+docker compose up -d
+```
+
+Or pin to a specific release:
+
+```yaml
+# docker-compose.yml
+image: m1v1n/appsec-toolbox:v1.0.0
+```
+
+To build from source instead:
+
+```bash
+git clone https://github.com/blabber-ducky/appsec-toolbox.git
+cd appsec-toolbox
 docker compose up --build -d
 ```
 
@@ -148,10 +166,11 @@ docker tag appsec-toolbox:1.0.0 appsec-toolbox:latest
 
 ## Pre-Pulling Tool Images
 
-Tool images are pulled on first use, which adds latency to the first scan of each tool. Pre-pull them at deploy time:
+Tool images are pulled on first use, which adds latency to the first scan of each tool. In Multi-Scan mode all selected tools pull concurrently at the start, so having images already cached is especially beneficial. Pre-pull at deploy time:
 
 ```bash
 # Run these on the host where the app will run
+docker pull m1v1n/appsec-toolbox:latest   # the app itself
 docker pull semgrep/semgrep:latest
 docker pull opengrep/opengrep:latest
 docker pull aquasec/trivy:latest
