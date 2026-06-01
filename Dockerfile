@@ -1,5 +1,7 @@
 # Stage 1: Build the React frontend
-FROM node:20-alpine AS frontend-build
+# --platform=$BUILDPLATFORM keeps npm ci/build on the native runner arch (amd64),
+# avoiding QEMU emulation for a step whose output is platform-agnostic static files.
+FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
